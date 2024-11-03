@@ -135,3 +135,6 @@ dist
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+sam-installation
+sam-installation/install
