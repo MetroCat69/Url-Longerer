@@ -1,20 +1,16 @@
 # Welcome to your CDK TypeScript project
 
-This is a blank project for CDK development with TypeScript.
+something something for everything we need a docker and sam cli before hand
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+you need aws sam + docker to run locally
+I will not be running locally due to a lot of infra over head to do
+rather I will be realing on logging
 
-## Useful commands
-
-- `npm run build` compile typescript to js
-- `npm run watch` watch for changes and compile
-- `npm run test` perform the jest unit tests
-- `npx cdk deploy` deploy this stack to your default AWS account/region
-- `npx cdk diff` compare deployed stack with current state
-- `npx cdk synth` emits the synthesized CloudFormation template
-
-to run locally install sam and docker
-run cdk synth\
-then sam something something
-the dockwr
-the sem somethng something
+needs the ability to run debug locally
+how tp test lambdas not using unit tests but integration tests?
+lets do the following stages
+basic url shortner
+then add better logging
+then add like unit and integration tests
+the stage 2 3 ect ect
+no users just crud url

@@ -12,10 +12,10 @@
     "build": "tsc",
     "test": "jest --coverage",
     "cdk": "cdk",
-    "synth cdk": "cdk synth > dist/template.yaml",
+    "synth cdk": "npm run build && cdk synth",
     "TODO RUN LOCAL": "built ;cdk synth > dist/template.yaml sudo dockerd  sam local start-api --template dist/template.yaml",
     "cdk bootsrap": "cdk bootstrap aws://$PROFILE_ID/eu-central-1",
-    "cdk deploy": "cdk deploy",
+    "cdk deploy": "cdk deploy  --template-file template.yaml",
     "cdk destroy": "cdk destroy"
   },
   "keywords": [],
@@ -23,6 +23,7 @@
   "license": "Copy Left",
   "devDependencies": {
     "@eslint/js": "^9.12.0",
+    "@types/aws-lambda": "^8.10.145",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.5",
     "@types/uuid": "^10.0.0",
@@ -41,6 +42,7 @@
   "dependencies": {
     "aws": "^0.0.3-2",
     "aws-cdk-lib": "^2.162.1",
+    "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1691.0",
     "constructs": "^10.4.1",
     "dotenv": "^16.4.5",
