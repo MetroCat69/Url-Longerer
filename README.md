@@ -1,8 +1,13 @@
-# Welcome to your CDK TypeScript project
+# Welcome to my Url shortner and longerer
 
-something something for everything we need a docker and sam cli before hand
+and this project I create a url shortner
+while also trolling and creating a url longerer
 
-you need aws sam + docker to run locally
+this project is based on aws
+
+in otder to run locally you need to install docker + sam
+you have the docker-wsl-setup for help
+
 I will not be running locally due to a lot of infra over head to do
 rather I will be realing on logging
 

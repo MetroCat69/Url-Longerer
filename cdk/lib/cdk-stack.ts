@@ -1,24 +1,73 @@
 import * as cdk from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { Construct } from "constructs";
+import * as path from "path";
 
-export class CdkHelloWorldStack extends cdk.Stack {
+const lambdaPath = "dist/src/lambdas/";
+
+export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const helloWorldFunction = new lambda.Function(this, "HelloWorldFunction", {
-      runtime: lambda.Runtime.NODEJS_20_X,
-      code: lambda.Code.fromAsset("dist/src/lambdas/hello"),
-      handler: "hello.handler",
+    const urlTable = new dynamodb.Table(this, "UrlTable", {
+      partitionKey: { name: "shortCode", type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    const api = new apigateway.LambdaRestApi(this, "HelloWorldApi", {
-      handler: helloWorldFunction,
-      proxy: false,
+    const createUrlFunction = new lambda.Function(this, "CreateUrlFunction", {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(path.join(lambdaPath, "createUrl")),
+      handler: "createUrl.handler",
+      environment: {
+        TABLE_NAME: urlTable.tableName,
+      },
     });
 
-    const helloResource = api.root.addResource("hello");
-    helloResource.addMethod("GET");
+    const getUrlFunction = new lambda.Function(this, "GetUrlFunction", {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(path.join(lambdaPath, "getUrl")),
+      handler: "getUrl.handler",
+      environment: {
+        TABLE_NAME: urlTable.tableName,
+      },
+    });
+
+    const deleteUrlFunction = new lambda.Function(this, "DeleteUrlFunction", {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(path.join(lambdaPath, "deleteUrl")),
+      handler: "deleteUrl.handler",
+      environment: {
+        TABLE_NAME: urlTable.tableName,
+      },
+    });
+
+    urlTable.grantWriteData(createUrlFunction);
+    urlTable.grantReadData(getUrlFunction);
+    urlTable.grantWriteData(deleteUrlFunction);
+
+    const api = new apigateway.RestApi(this, "UrlShortenerApi", {
+      restApiName: "URL Shortener Service",
+      description: "This service handles URL shortening.",
+    });
+
+    const createResource = api.root.addResource("create");
+    createResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createUrlFunction)
+    );
+
+    const getResource = api.root.addResource("get");
+    getResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUrlFunction)
+    );
+
+    const deleteResource = api.root.addResource("delete");
+    deleteResource.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deleteUrlFunction)
+    );
   }
 }

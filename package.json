@@ -13,9 +13,11 @@
     "test": "jest --coverage",
     "cdk": "cdk",
     "synth cdk": "npm run build && cdk synth",
-    "TODO RUN LOCAL": "built ;cdk synth > dist/template.yaml sudo dockerd  sam local start-api --template dist/template.yaml",
+    "dockerd": "sudo dockerd",
+    "sam": "sam local start-api -t cdk.out/CdkUrlShortenerStack.template.json",
+    "TODO RUN LOCAL": "sudo dockerd && sam local start-api && jest",
     "cdk bootsrap": "cdk bootstrap aws://$PROFILE_ID/eu-central-1",
-    "cdk deploy": "cdk deploy  --template-file template.yaml",
+    "cdk deploy": "cdk deploy",
     "cdk destroy": "cdk destroy"
   },
   "keywords": [],
@@ -40,10 +42,13 @@
     "typescript-eslint": "^8.8.1"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.685.0",
+    "@aws-sdk/core": "^3.679.0",
+    "@aws-sdk/lib-dynamodb": "^3.685.0",
     "aws": "^0.0.3-2",
     "aws-cdk-lib": "^2.162.1",
     "aws-lambda": "^1.0.7",
-    "aws-sdk": "^2.1691.0",
     "constructs": "^10.4.1",
     "dotenv": "^16.4.5",
     "source-map-support": "^0.5.21",
