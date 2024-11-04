@@ -11,7 +11,10 @@ export const handler = async (
   const { shortCode } = event.queryStringParameters || {};
   try {
     if (!shortCode) {
-      console.error("missing parameter short query");
+      console.error(
+        "missing parameter short query",
+        event.queryStringParameters
+      );
       return {
         statusCode: 400,
         body: JSON.stringify({ message: "shortCode is required" }),

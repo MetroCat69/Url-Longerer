@@ -39,7 +39,7 @@ export const handler = async (
 
     const { originalUrl } = body;
     if (!originalUrl) {
-      console.error("Missing originalUrl in request");
+      console.error("Missing originalUrl in request", body);
       return {
         statusCode: 400,
         body: JSON.stringify({
