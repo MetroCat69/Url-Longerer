@@ -1,5 +1,14 @@
 # Welcome to my Url shortner and longerer
 
+## requitments
+
+this projects uses npm +type script and aws for infa
+to avoid disasters i am using aws local stack to deploy and test locally
+you need the folowings:
+docker
+aws-local
+aws-cdk
+aws-cdk-local
 and this project I create a url shortner
 while also trolling and creating a url longerer
 

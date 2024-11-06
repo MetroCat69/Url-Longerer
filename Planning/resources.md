@@ -3,3 +3,5 @@ https://medium.com/@sandeep4.verma/system-design-scalable-url-shortener-service-
 https://systemdesign.one/url-shortening-system-design/
 https://github.com/skorfmann/gpt-url-redirect/tree/main/lib
 https://github.com/skorfmann/gpt-url-redirect/blob/main/lib/shorturl-redirect.handler.ts
+
+https://blog.dennisokeeffe.com/blog/2021-08-07-using-the-aws-cdk-with-localstack-and-aws-cdk-local

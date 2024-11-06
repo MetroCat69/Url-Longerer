@@ -6,6 +6,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "local": "cdklocal",
     "start": "node dist/index.js",
     "run": "npx ts-node src/index.ts",
     "lint": "eslint .",
@@ -14,11 +15,12 @@
     "cdk": "cdk",
     "synth cdk": "npm run build && cdk synth",
     "dockerd": "sudo dockerd",
-    "sam": "sam local start-api -t cdk.out/CdkUrlShortenerStack.template.json",
-    "TODO RUN LOCAL": "sudo dockerd && sam local start-api && jest",
     "cdk bootsrap": "cdk bootstrap aws://$PROFILE_ID/eu-central-1",
     "cdk deploy": "cdk deploy",
-    "cdk destroy": "cdk destroy"
+    "cdk destroy": "cdk destroy",
+    "cdk local synth": "npm run local synth",
+    "cdk local deploy": "npm run local deploy",
+    "local distroy": "npm run local destroy"
   },
   "keywords": [],
   "author": "",
