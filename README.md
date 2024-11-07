@@ -1,5 +1,5 @@
 # Welcome to my Url shortner and longerer
-
+aws configure --profile localstack
 ## requitments
 
 this projects uses npm +type script and aws for infa

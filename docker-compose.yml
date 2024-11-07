@@ -3,27 +3,25 @@ services:
   localstack:
     image: localstack/localstack
     ports:
-      - "53:53"
-      - "443:443"
-      - "4510-4520:4510-4520"
-      - "4566-4620:4566-4620"
-      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+      - "127.0.0.1:4566:4566" # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559" # external services port range
+      - "127.0.0.1:8080:8080" # LocalStack UI port
     environment:
       - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
       - HOSTNAME_EXTERNAL=localstack
       - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
+      - DATA_DIR=/tmp/localstack1/data
       - DOCKER_HOST=unix:///var/run/docker.sock
       - LAMBDA_EXECUTOR=docker
-      - LAMBDA_NETWORK=localstack-network # Use the custom network
+      - LAMBDA_NETWORK=bridge # Use the default network
+      - LAMBDA_DOCKER_FLAGS=-e NODE_OPTIONS=--inspect-brk=0.0.0.0:9229 -p 9229:9229
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_SESSION_TOKEN=test
+      - DEFAULT_REGION=eu-central-1
+      - LOCALSTACK_UI_URL=http://localhost:8080 # Set the LocalStack UI URL
+      - EDGE_PORT=4566 # Set the LocalStack endpoint port
     volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
-    tmpfs:
-      - /tmp/localstack:exec,mode=600
-    networks:
-      - localstack-network # Attach to the custom network
     command: ["localstack", "start"] # Automatically start LocalStack
-
-networks:
-  localstack-network:
-    driver: bridge
