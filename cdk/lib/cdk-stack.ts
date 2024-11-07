@@ -20,6 +20,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(path.join(lambdaPath, "createUrl")),
       handler: "createUrl.handler",
+      timeout: cdk.Duration.seconds(10),
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
@@ -29,6 +30,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(path.join(lambdaPath, "getUrl")),
       handler: "getUrl.handler",
+      timeout: cdk.Duration.seconds(10),
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
@@ -38,6 +40,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(path.join(lambdaPath, "deleteUrl")),
       handler: "deleteUrl.handler",
+      timeout: cdk.Duration.seconds(10),
       environment: {
         TABLE_NAME: urlTable.tableName,
       },

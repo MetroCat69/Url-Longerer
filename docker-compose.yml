@@ -9,14 +9,21 @@ services:
       - "4566-4620:4566-4620"
       - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
     environment:
-      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY}
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
       - HOSTNAME_EXTERNAL=localstack
       - DEBUG=1
       - DATA_DIR=/tmp/localstack/data
       - DOCKER_HOST=unix:///var/run/docker.sock
       - LAMBDA_EXECUTOR=docker
-      - LAMBDA_NETWORK=bridge
+      - LAMBDA_NETWORK=localstack-network # Use the custom network
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     tmpfs:
       - /tmp/localstack:exec,mode=600
+    networks:
+      - localstack-network # Attach to the custom network
+    command: ["localstack", "start"] # Automatically start LocalStack
+
+networks:
+  localstack-network:
+    driver: bridge

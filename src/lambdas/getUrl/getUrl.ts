@@ -3,7 +3,9 @@ import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
 
-const dynamoDbClient = new DynamoDBClient({});
+const dynamoDbClient = new DynamoDBClient({
+  endpoint: "http://localhost:4566",
+});
 const tableName = process.env.TABLE_NAME!;
 
 export const handler = async (
