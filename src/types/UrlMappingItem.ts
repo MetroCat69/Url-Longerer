@@ -1,5 +1,5 @@
 export interface UrlMappingItem {
-  shortCode: string;
+  shortUrl: string;
   createdAt: string;
   originalUrl: string;
   visitCount: number;

@@ -4,8 +4,10 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 import * as path from "path";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 
 const lambdaPath = "dist/src/lambdas/";
+const domainString = "urlLongerer";
 
 export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -72,5 +74,25 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       "DELETE",
       new apigateway.LambdaIntegration(deleteUrlFunction)
     );
+
+    const certificate = acm.Certificate.fromCertificateArn(
+      this,
+      "DomainCertificate",
+      "arn:aws:acm:region:account-id:certificate/certificate-id"
+    );
+
+    const domainName = new apigateway.DomainName(this, "CustomDomain", {
+      domainName: domainString,
+      certificate: certificate,
+    });
+
+    new apigateway.BasePathMapping(this, "BasePathMapping", {
+      domainName: domainName,
+      restApi: api,
+    });
+
+    new cdk.CfnOutput(this, "ApiUrl", {
+      value: `https://${domainName.domainName}`,
+    });
   }
 }

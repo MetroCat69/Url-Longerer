@@ -8,7 +8,7 @@ const tableName = process.env.TABLE_NAME!;
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const { shortCode } = event.queryStringParameters || {};
+  const shortCode = event.queryStringParameters || {};
   try {
     if (!shortCode) {
       console.error(
@@ -32,7 +32,6 @@ export const handler = async (
     const command = new DeleteCommand(params);
     const result = await dynamoDbClient.send(command);
 
-    // Check if the item was deleted by examining the result
     if (result.Attributes) {
       console.log("deleted url", params);
       return {

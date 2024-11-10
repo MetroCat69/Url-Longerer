@@ -24,8 +24,6 @@
     "cdk local synth build deploy": "npm run build && cdklocal bootstrap --region eu-central-1 && npm run local synth && npm run local deploy",
     "cdk local deploy": "npm run local deploy",
     "cdk local destroy": "npm run local destroy",
-    "sam local": "samlocal local start-api -t cdk.out/CdkUrlShortenerStack.template.json",
-    "run local end to end": "npm run build && cdklocal bootstrap --region eu-central-1 && cdk synth  && npm run local deploy && samlocal local start-api -t cdk.out/CdkUrlShortenerStack.template.json",
     "start services": "./start-services.sh"
   },
   "keywords": [],

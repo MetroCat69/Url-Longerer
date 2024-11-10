@@ -1,7 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { CreateShortUrlRequest } from "../../types/CreateShortUrlRequest";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
 import { createHash } from "crypto";
 
@@ -18,44 +17,42 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    if (!event.body) {
-      console.error("Missing body in event", event);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: "Request body is required." }),
-      };
-    }
+    const originalUrl = event.queryStringParameters?.url;
 
-    let body: CreateShortUrlRequest;
-    try {
-      body = JSON.parse(event.body);
-    } catch (parseError) {
-      console.error("Failed to parse request body", parseError);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: "Invalid JSON format." }),
-      };
-    }
-
-    const { originalUrl } = body;
     if (!originalUrl) {
-      console.error("Missing originalUrl in request", body);
+      console.error("Missing url query parameter", event);
       return {
         statusCode: 400,
         body: JSON.stringify({
-          message: "originalUrl is required",
+          message: "url query parameter is required",
+          example: "?url=https://example.com",
+        }),
+      };
+    }
+
+    try {
+      new URL(originalUrl);
+    } catch (urlError) {
+      console.error("Invalid URL format", urlError);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Invalid URL format. Please provide a valid URL including protocol (http:// or https://)",
         }),
       };
     }
 
     const createdAt = new Date().toISOString();
-    const shortCode = simpleHash(originalUrl);
+    const shortUrl = simpleHash(originalUrl);
+
     const Item: UrlMappingItem = {
-      shortCode,
+      shortUrl,
       createdAt,
       originalUrl,
       visitCount: 0,
     };
+
     const params = {
       TableName: tableName,
       Item: Item,
@@ -70,7 +67,8 @@ export const handler = async (
       statusCode: 201,
       body: JSON.stringify({
         message: "Short URL created successfully",
-        shortCode,
+        shortUrl,
+        originalUrl,
       }),
     };
   } catch (error) {
