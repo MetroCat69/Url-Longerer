@@ -1,28 +1,27 @@
-## The topic of the development lifecycle
+## The Topic of the Development Lifecycle
 
-1. I don't want to directly deploy to aws becouse this is a very bad habit
-1. Also I can't afford to waist money
-1. Tried sam+ dynamo in docker and had hell and over enginriring trying to make lambdaas write to the docker dynamo
-1. also I am using cdk so it was suck a pain to make everything
-1. tried deploying the dynamo and running lambda locally and lost money and had to do a lot of configiration and stuff still didn't work
-1. cant just deploy every time due to pain+money
-1. I am going to choose local stack seems like it will enable me to do stuff locally without spending days doing configiration
-1. I tried local stack and its great
-1. however hard as I tried couldn't suc in running localstack+sam due to a wierd aws authantication problem
-1. also coudn't manage to debug locally
-1. so then I am going to run shit on local stack(locally) and debug with logs
+1. I don't want to directly deploy to AWS because this is a very bad habit.
+2. Also, I can't afford to waste money.
+3. I tried SAM + DynamoDB in Docker and had a terrible experience with over-engineering while trying to make Lambdas write to the Docker DynamoDB. And integrating with aws CDK and I don't want to write a docker for every service.
+4. Also, I am using CDK, so it was a huge pain to make everything work together.
+5. I tried deploying DynamoDB and running Lambda locally, but I lost money and had to do a lot of configuration, and it still didn't work.
+6. I can't just deploy every time due to the hassle and cost.
+7. I am going to choose LocalStack since it seems like it will enable me to do everything locally without spending days on configuration.
+8. I tried LocalStack, and it's great.
+9. However, no matter how hard I tried, I couldn't succeed in running LocalStack + SAM due to a weird AWS authentication problem.
+10. Also, I couldn't manage to debug locally.
+11. So, I am going to run everything on LocalStack (locally) and debug using logs.
 
-## so ...
+## So ...
 
-1. To challenge myself every infra stuff most be infra as code
-
-1. Tried working directly on aws but i found debbuging very difficult
-1. I tried running using aws +sam but I forgot somre resource open and lost a lot of money (ec2 :( ))
-1. So I tried using docker for dynamo+ sam for lambda but found that I need to pass paramas and boot stuff in a very convolted way to perfectly sync docker stuff with aws cdk stuff without hard coding it
-1. So I tried aws sam with local stack and it defently didnt work
-1. So I tried just local stack really hard and after a ton of configiration and learning and docker composing I also tried and fialed to use it with sam local but the final straw was that I cant have the same domain for testing rather I have a new domain every time for the api gateway
-1. I learned that local stack is a lot of work with crazy problems like sub networks problems docker compose configirations and authantication wierdness
-1. I am not a devops so I am willing to pay to just host mys stuff on aws
-1. main problem I need to solve is to create two deployments one for lambda one for infra this is why I didn't want to do this shit intially
-1. make this a hige mono repo for debugging lambda or maybe I should just use the ui and see logs
-1. to same time and effort from making a huge mono repo I will just debug lambdas with logs
+1. To challenge myself, every infrastructure component must be Infrastructure as Code.
+2. I tried working directly on AWS, but I found debugging very difficult.
+3. I tried running AWS + SAM, but I forgot some resources open and lost a lot of money (EC2 :( ).
+4. So I tried using Docker for DynamoDB + SAM for Lambda but found that I needed to pass parameters and configure things in a very convoluted way to perfectly sync Docker with AWS CDK without hardcoding it.
+5. I tried AWS SAM with LocalStack, and it definitely didn't work.
+6. So I tried LocalStack really hard, and after a ton of configuration, learning, and Docker Compose setup, I also failed to use it with SAM local. The final straw was that I couldn't have the same domain for testing—every time, I got a new domain for API Gateway.
+7. I learned that LocalStack requires a lot of work with crazy problems like subnet issues, Docker Compose configurations, and authentication weirdness.
+8. I am not a DevOps engineer, so I am willing to pay to just host my stuff on AWS.
+9. The main problem I need to solve is creating two separate deployments: one for Lambda and one for infrastructure. This is why I didn't want to do this initially.
+10. I considered making this a huge monorepo for debugging Lambda, but maybe I should just use the UI and check logs instead.
+11. To save time and effort from creating a huge monorepo, I will just debug Lambdas using logs.
