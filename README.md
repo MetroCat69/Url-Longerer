@@ -28,3 +28,6 @@ then add better logging
 then add like unit and integration tests
 the stage 2 3 ect ect
 no users just crud url
+
+
+run start services then cdk local synth build deploy

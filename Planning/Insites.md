@@ -29,3 +29,6 @@
 # after trip update
 
 I am givving up on cdk due to the hassle of either paying money or doing a lot of configiration work. From now on I will use express js with stuff I can just run on docker.
+
+FUCKING COSTUME DOMAINS ARE PRO FEATURE IN LOCAL STACK
+FUCK LOCALSTACK
