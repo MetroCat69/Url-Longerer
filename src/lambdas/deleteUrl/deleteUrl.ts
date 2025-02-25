@@ -8,9 +8,10 @@ const tableName = process.env.TABLE_NAME!;
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
-  const shortCode = event.queryStringParameters || {};
+  const shortUrl = event.queryStringParameters?.url;
+
   try {
-    if (!shortCode) {
+    if (!shortUrl) {
       console.error(
         "missing parameter short query",
         event.queryStringParameters
@@ -24,7 +25,7 @@ export const handler = async (
     const params = {
       TableName: tableName,
       Key: {
-        shortCode,
+        shortUrl,
       },
     };
 

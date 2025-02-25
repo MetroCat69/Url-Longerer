@@ -1,5 +1,5 @@
-1. create basic url crd
-2. add tests
+1. create basic url crd done
+2. add tests done
 3. add users
 4. link exparation
 5. cachce

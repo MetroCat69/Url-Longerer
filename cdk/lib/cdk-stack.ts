@@ -12,7 +12,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
     super(scope, id, props);
 
     const urlTable = new dynamodb.Table(this, "UrlTable", {
-      partitionKey: { name: "shortCode", type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: "shortUrl", type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 

@@ -12,9 +12,9 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { shortCode } = event.queryStringParameters || {};
+    const shortUrl = event.queryStringParameters?.url;
 
-    if (!shortCode) {
+    if (!shortUrl) {
       console.error(
         "missing parameter short query",
         event.queryStringParameters
@@ -28,7 +28,7 @@ export const handler = async (
     const params = {
       TableName: tableName,
       Key: {
-        shortCode,
+        shortUrl,
       },
     };
 
@@ -38,7 +38,7 @@ export const handler = async (
     const item = result.Item as UrlMappingItem;
 
     if (!item) {
-      console.error("URL not found for code", shortCode);
+      console.error("URL not found for code", shortUrl);
       return {
         statusCode: 404,
         body: JSON.stringify({ message: "URL not found" }),

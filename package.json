@@ -17,8 +17,8 @@
     "synth build": "npm run build && cdk synth",
     "cdk deploy": "cdk deploy",
     "cdk destroy": "cdk destroy",
-    "build cdk synth deploy": "tsc && cdk deploy",
-    "sam": "sam local start-api -t ./cdk.out/CdkUrlShortenerStack.template.json"
+    "build cdk deploy": "tsc && cdk deploy",
+    "sam": "sam local start-api -t ./cdk.out/CdkUrlShortenerStack.template.json --host 127.0.0.1 --port 3000 --profile ADMIN --region \"eu-central-1\""
   },
   "keywords": [],
   "author": "",
@@ -50,6 +50,7 @@
     "aws": "^0.0.3-2",
     "aws-cdk-lib": "^2.162.1",
     "aws-lambda": "^1.0.7",
+    "aws-sdk-client-mock": "^4.1.0",
     "constructs": "^10.4.1",
     "dotenv": "^16.4.5",
     "inquirer": "^12.4.2",

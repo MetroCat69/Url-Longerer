@@ -17,13 +17,13 @@ describe("CdkUrlShortenerStack", () => {
     template.hasResourceProperties("AWS::DynamoDB::Table", {
       AttributeDefinitions: [
         {
-          AttributeName: "shortCode",
+          AttributeName: "shortUrl",
           AttributeType: "S",
         },
       ],
       KeySchema: [
         {
-          AttributeName: "shortCode",
+          AttributeName: "shortUrl",
           KeyType: "HASH",
         },
       ],
