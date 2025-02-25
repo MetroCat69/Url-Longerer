@@ -4,10 +4,8 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import { Construct } from "constructs";
 import * as path from "path";
-import * as acm from "aws-cdk-lib/aws-certificatemanager";
 
 const lambdaPath = "dist/src/lambdas/";
-const domainString = "urllongerer.";
 
 export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -26,7 +24,6 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
-      reservedConcurrentExecutions: 2,
     });
 
     const getUrlFunction = new lambda.Function(this, "GetUrlFunction", {
@@ -37,7 +34,6 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
-      reservedConcurrentExecutions: 2,
     });
 
     const deleteUrlFunction = new lambda.Function(this, "DeleteUrlFunction", {
@@ -48,7 +44,6 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
-      reservedConcurrentExecutions: 2,
     });
 
     urlTable.grantWriteData(createUrlFunction);
@@ -77,26 +72,5 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       "DELETE",
       new apigateway.LambdaIntegration(deleteUrlFunction)
     );
-
-    const certificate = acm.Certificate.fromCertificateArn(
-      this,
-      "DomainCertificate",
-      "arn:aws:acm:region:account-id:certificate/certificate-id"
-    );
-
-    const domainName = new apigateway.DomainName(this, "CustomDomain", {
-      domainName: domainString,
-      certificate: certificate,
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const apiGateWay = new apigateway.BasePathMapping(this, "BasePathMapping", {
-      domainName: domainName,
-      restApi: api,
-    });
-
-    new cdk.CfnOutput(this, "ApiUrlDev", {
-      value: `https://localhost.localstack.cloud:4566/${domainName.domainName}`,
-    });
   }
 }

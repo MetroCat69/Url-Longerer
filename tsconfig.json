@@ -23,5 +23,12 @@
     "outDir": "./dist",
     "typeRoots": ["./node_modules/@types"]
   },
-  "exclude": ["node_modules", "dist", "build", "node_modules", "cdk.out"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "node_modules",
+    "cdk.out",
+    "coverage"
+  ]
 }
