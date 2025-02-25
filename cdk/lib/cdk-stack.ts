@@ -7,7 +7,7 @@ import * as path from "path";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 
 const lambdaPath = "dist/src/lambdas/";
-const domainString = "urlLongerer";
+const domainString = "urllongerer.";
 
 export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -26,6 +26,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
+      reservedConcurrentExecutions: 2,
     });
 
     const getUrlFunction = new lambda.Function(this, "GetUrlFunction", {
@@ -36,6 +37,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
+      reservedConcurrentExecutions: 2,
     });
 
     const deleteUrlFunction = new lambda.Function(this, "DeleteUrlFunction", {
@@ -46,6 +48,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       environment: {
         TABLE_NAME: urlTable.tableName,
       },
+      reservedConcurrentExecutions: 2,
     });
 
     urlTable.grantWriteData(createUrlFunction);
@@ -86,13 +89,14 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       certificate: certificate,
     });
 
-    new apigateway.BasePathMapping(this, "BasePathMapping", {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const apiGateWay = new apigateway.BasePathMapping(this, "BasePathMapping", {
       domainName: domainName,
       restApi: api,
     });
 
-    new cdk.CfnOutput(this, "ApiUrl", {
-      value: `https://${domainName.domainName}`,
+    new cdk.CfnOutput(this, "ApiUrlDev", {
+      value: `https://localhost.localstack.cloud:4566/${domainName.domainName}`,
     });
   }
 }
