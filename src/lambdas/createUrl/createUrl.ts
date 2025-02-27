@@ -17,9 +17,9 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const originalUrl = event.queryStringParameters?.url;
+    const domainName = event.queryStringParameters?.domainName;
 
-    if (!originalUrl) {
+    if (!domainName) {
       console.error("Missing url query parameter", event);
       return {
         statusCode: 400,
@@ -30,23 +30,12 @@ export const handler = async (
       };
     }
 
-    try {
-      new URL(originalUrl);
-    } catch (urlError) {
-      console.error("Invalid URL format", urlError);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message:
-            "Invalid URL format. Please provide a valid URL including protocol (http:// or https://)",
-        }),
-      };
-    }
+    const originalUrl = `https://${domainName}`;
 
-    const createdAt = new Date().toISOString();
+    const createdAt = new Date();
     const shortUrl = simpleHash(originalUrl);
 
-    const Item: UrlMappingItem = {
+    const item: UrlMappingItem = {
       shortUrl,
       createdAt,
       originalUrl,
@@ -55,7 +44,7 @@ export const handler = async (
 
     const params = {
       TableName: tableName,
-      Item: Item,
+      Item: item,
     };
 
     console.log("Creating URL with params", params);

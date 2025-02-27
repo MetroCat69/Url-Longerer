@@ -1,6 +1,6 @@
 1. create basic url crd done
 2. add tests done
-3. add users
+3. add check if link exists before insert, add redirection at get add users
 4. link exparation
 5. cachce
 6. analytics
