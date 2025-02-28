@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
 import { createHash } from "crypto";
@@ -35,6 +35,29 @@ export const handler = async (
     const createdAt = new Date();
     const shortUrl = simpleHash(originalUrl);
 
+    // Check if the URL already exists
+    const getParams = {
+      TableName: tableName,
+      Key: { shortUrl },
+    };
+
+    console.log("Checking if URL already exists", getParams);
+    const getCommand = new GetCommand(getParams);
+    const existingItem = await dynamoDbClient.send(getCommand);
+    console.log("Existing Items", existingItem);
+
+    if (existingItem.Item) {
+      console.log("URL already exists", existingItem.Item);
+      return {
+        statusCode: 409,
+        body: JSON.stringify({
+          message: "Short URL already exists",
+          shortUrl,
+          originalUrl,
+        }),
+      };
+    }
+
     const item: UrlMappingItem = {
       shortUrl,
       createdAt,
@@ -42,15 +65,15 @@ export const handler = async (
       visitCount: 0,
     };
 
-    const params = {
+    const putParams = {
       TableName: tableName,
       Item: item,
     };
 
-    console.log("Creating URL with params", params);
-    const command = new PutCommand(params);
+    console.log("Creating URL with params", putParams);
+    const command = new PutCommand(putParams);
     await dynamoDbClient.send(command);
-    console.log("Created URL", params);
+    console.log("Created URL", putParams);
 
     return {
       statusCode: 201,

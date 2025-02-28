@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { handler } from "../../../src/lambdas/createUrl/createUrl";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { mockClient } from "aws-sdk-client-mock";
 
 describe("createUrl handler", () => {
@@ -23,6 +23,27 @@ describe("createUrl handler", () => {
     expect(body.message).toBe("url query parameter is required");
   });
 
+  it("returns 409 if the URL already exists", async () => {
+    const domainName = "example.com";
+    const expectedUrl = `https://${domainName}`;
+    const shortUrl = "abc123";
+
+    const event = {
+      queryStringParameters: { domainName },
+    } as unknown as APIGatewayProxyEvent;
+
+    dbMock
+      .on(GetCommand)
+      .resolves({ Item: { shortUrl, originalUrl: expectedUrl } });
+
+    const result = await handler(event);
+
+    expect(result.statusCode).toBe(409);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe("Short URL already exists");
+    expect(body.originalUrl).toBe(expectedUrl);
+  });
+
   it("returns 201 and creates a short URL successfully", async () => {
     const domainName = "example.com";
     const expectedUrl = `https://${domainName}`;
@@ -31,7 +52,9 @@ describe("createUrl handler", () => {
       queryStringParameters: { domainName },
     } as unknown as APIGatewayProxyEvent;
 
+    dbMock.on(GetCommand).resolves({ Item: undefined });
     dbMock.on(PutCommand).resolves({});
+
     const result = await handler(event);
 
     expect(result.statusCode).toBe(201);
@@ -47,7 +70,8 @@ describe("createUrl handler", () => {
     const event = {
       queryStringParameters: { domainName },
     } as unknown as APIGatewayProxyEvent;
-
+    // Simulate that no duplicate exists so that the PutCommand is reached.
+    dbMock.on(GetCommand).resolves({ Item: undefined });
     dbMock.on(PutCommand).rejects(new Error("Dynamo error"));
     const result = await handler(event);
 
