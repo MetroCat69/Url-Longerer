@@ -17,6 +17,17 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const userTable = new dynamodb.Table(this, "UserTable", {
+      tableName: "UserTable",
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const api = new apigateway.RestApi(this, "UrlShortenerApi", {
+      restApiName: "URL Shortener Service",
+      description: "This service handles URL shortening.",
+    });
+
     const createUrlFunction = new lambda.Function(this, "CreateUrlFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(path.join(lambdaPath, "createUrl")),
@@ -51,27 +62,56 @@ export class CdkUrlShortenerStack extends cdk.Stack {
     urlTable.grantReadWriteData(getUrlFunction);
     urlTable.grantWriteData(deleteUrlFunction);
 
-    const api = new apigateway.RestApi(this, "UrlShortenerApi", {
-      restApiName: "URL Shortener Service",
-      description: "This service handles URL shortening.",
-    });
+    const urlResource = api.root.addResource("url");
 
-    const createResource = api.root.addResource("create");
-    createResource.addMethod(
+    urlResource.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createUrlFunction)
     );
 
-    const getResource = api.root.addResource("get");
-    getResource.addMethod(
+    urlResource.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getUrlFunction)
     );
 
-    const deleteResource = api.root.addResource("delete");
-    deleteResource.addMethod(
+    urlResource.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(deleteUrlFunction)
+    );
+
+    const createUserFunction = new lambda.Function(this, "CreateUserFunction", {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(path.join(lambdaPath, "createUser")),
+      handler: "createUser.handler",
+      timeout: cdk.Duration.seconds(10),
+      environment: {
+        TABLE_NAME: userTable.tableName,
+      },
+    });
+
+    const deleteUserFunction = new lambda.Function(this, "DeleteUserFunction", {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(path.join(lambdaPath, "deleteUser")),
+      handler: "deleteUser.handler",
+      timeout: cdk.Duration.seconds(10),
+      environment: {
+        TABLE_NAME: userTable.tableName,
+      },
+    });
+
+    userTable.grantReadWriteData(createUserFunction);
+    urlTable.grantWriteData(deleteUserFunction);
+
+    const userResource = api.root.addResource("url");
+
+    userResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createUserFunction)
+    );
+
+    urlResource.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deleteUserFunction)
     );
   }
 }
