@@ -12,13 +12,10 @@ export const handler = async (
 
   try {
     if (!shortUrl) {
-      console.error(
-        "missing parameter short query",
-        event.queryStringParameters
-      );
+      console.error("missing parameter url", event.queryStringParameters);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "shortCode is required" }),
+        body: JSON.stringify({ message: "url is required" }),
       };
     }
 
@@ -33,7 +30,7 @@ export const handler = async (
     const command = new DeleteCommand(params);
     const result = await dynamoDbClient.send(command);
 
-    if (result.Attributes) {
+    if (result && result.$metadata.httpStatusCode === 200) {
       console.log("deleted url", params);
       return {
         statusCode: 200,

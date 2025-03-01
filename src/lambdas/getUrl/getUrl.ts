@@ -1,27 +1,20 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
 
-const dynamoDbClient = new DynamoDBClient({
-  endpoint: "http://localhost:4566",
-});
+const dynamoDbClient = new DynamoDBClient({});
 const tableName = process.env.TABLE_NAME!;
-
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
     const shortUrl = event.queryStringParameters?.url;
-
     if (!shortUrl) {
-      console.error(
-        "missing parameter short query",
-        event.queryStringParameters
-      );
+      console.error("missing parameter url", event.queryStringParameters);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "shortCode is required" }),
+        body: JSON.stringify({ message: "url is required" }),
       };
     }
 
@@ -31,7 +24,6 @@ export const handler = async (
         shortUrl,
       },
     };
-
     console.log("getting url", params);
     const command = new GetCommand(params);
     const result = await dynamoDbClient.send(command);
@@ -46,9 +38,25 @@ export const handler = async (
     }
 
     console.log("got url", item);
+
+    const updateParams = {
+      TableName: tableName,
+      Key: { shortUrl },
+      UpdateExpression: "SET visitCount = visitCount + :inc",
+      ExpressionAttributeValues: { ":inc": 1 },
+    };
+
+    console.log("incramented url visited count with params", updateParams);
+
+    const updateCommand = new UpdateCommand(updateParams);
+    await dynamoDbClient.send(updateCommand);
+
     return {
-      statusCode: 200,
-      body: JSON.stringify(item),
+      statusCode: 301,
+      headers: {
+        Location: item.originalUrl,
+      },
+      body: "",
     };
   } catch (error) {
     console.error("Failed to retrieve URL with error", error);

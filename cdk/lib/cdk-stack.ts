@@ -12,6 +12,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
     super(scope, id, props);
 
     const urlTable = new dynamodb.Table(this, "UrlTable", {
+      tableName: "UrlTable",
       partitionKey: { name: "shortUrl", type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
@@ -46,8 +47,8 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       },
     });
 
-    urlTable.grantWriteData(createUrlFunction);
-    urlTable.grantReadData(getUrlFunction);
+    urlTable.grantReadWriteData(createUrlFunction);
+    urlTable.grantReadWriteData(getUrlFunction);
     urlTable.grantWriteData(deleteUrlFunction);
 
     const api = new apigateway.RestApi(this, "UrlShortenerApi", {
