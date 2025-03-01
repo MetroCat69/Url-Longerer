@@ -70,7 +70,6 @@ describe("createUrl handler", () => {
     const event = {
       queryStringParameters: { domainName },
     } as unknown as APIGatewayProxyEvent;
-    // Simulate that no duplicate exists so that the PutCommand is reached.
     dbMock.on(GetCommand).resolves({ Item: undefined });
     dbMock.on(PutCommand).rejects(new Error("Dynamo error"));
     const result = await handler(event);

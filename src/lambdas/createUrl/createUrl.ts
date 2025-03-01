@@ -46,7 +46,7 @@ export const handler = async (
     console.log("Existing Items", existingItem);
 
     if (existingItem.Item) {
-      console.log("URL already exists", existingItem.Item);
+      console.error("URL already exists", existingItem.Item);
       return {
         statusCode: 409,
         body: JSON.stringify({
