@@ -12,10 +12,6 @@ describe("createUser handler", () => {
     process.env.TABLE_NAME = "test-table";
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it("returns 400 if required fields are missing", async () => {
     const event = {} as APIGatewayProxyEvent;
 

@@ -2,6 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
+import { UserLinkConnection } from "../../types/UserLinkConnection";
 import { createHash } from "crypto";
 
 function simpleHash(input: string): string {
@@ -11,32 +12,35 @@ function simpleHash(input: string): string {
 }
 
 const dynamoDbClient = new DynamoDBClient({});
-const tableName = process.env.TABLE_NAME!;
+const urlTableName = process.env.URL_TABLE_NAME!;
+const userLinkTableName = process.env.USER_LINK_TABLE_NAME!;
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
     const domainName = event.queryStringParameters?.domainName;
+    const userId = event.queryStringParameters?.userId
+      ? parseInt(event.queryStringParameters.userId, 10)
+      : null;
 
-    if (!domainName) {
-      console.error("Missing domainName query parameter", event);
+    if (!domainName || !userId) {
+      console.error("Missing required query parameters", event);
       return {
         statusCode: 400,
         body: JSON.stringify({
-          message: "domainName query parameter is required",
+          message: "domainName and userId query parameters are required",
         }),
       };
     }
 
     const originalUrl = `https://${domainName}`;
-
     const createdAt = new Date().toISOString();
     const shortUrl = simpleHash(originalUrl);
 
     // Check if the URL already exists
     const getParams = {
-      TableName: tableName,
+      TableName: urlTableName,
       Key: { shortUrl },
     };
 
@@ -57,7 +61,23 @@ export const handler = async (
       };
     }
 
-    const item: UrlMappingItem = {
+    const userUrlLink: UserLinkConnection = {
+      userId,
+      shortUrl,
+    };
+    // Add entry to user link table
+    const userLinkParams = {
+      TableName: userLinkTableName,
+      Item: userUrlLink,
+    };
+
+    console.log("Adding URL to user link table", userLinkParams);
+    const userLinkCommand = new PutCommand(userLinkParams);
+    await dynamoDbClient.send(userLinkCommand);
+    console.log("Added URL to user link table", userLinkParams);
+
+    // add url to url table
+    const urlMappingItem: UrlMappingItem = {
       shortUrl,
       createdAt,
       originalUrl,
@@ -65,8 +85,8 @@ export const handler = async (
     };
 
     const putParams = {
-      TableName: tableName,
-      Item: item,
+      TableName: urlTableName,
+      Item: urlMappingItem,
     };
 
     console.log("Creating URL with params", putParams);

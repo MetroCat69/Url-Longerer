@@ -9,27 +9,35 @@ describe("createUrl handler", () => {
 
   beforeEach(() => {
     dbMock.reset();
-    process.env.TABLE_NAME = "test-table";
+    process.env.URL_TABLE_NAME = "test-url-table";
+    process.env.USER_LINK_TABLE_NAME = "test-user-link-table";
   });
 
-  it("returns 400 if 'domainName' query parameter is missing", async () => {
-    const event = {
-      queryStringParameters: {}, // no domainName provided
-    } as APIGatewayProxyEvent;
+  it("returns 400 if 'domainName' or 'userId' query parameter is missing", async () => {
+    const cases = [
+      { queryStringParameters: { userId: "1" } },
+      { queryStringParameters: { domainName: "example.com" } },
+      { queryStringParameters: {} },
+    ];
 
-    const result = await handler(event);
-    expect(result.statusCode).toBe(400);
-    const body = JSON.parse(result.body);
-    expect(body.message).toBe("domainName query parameter is required");
+    for (const event of cases) {
+      const result = await handler(event as APIGatewayProxyEvent);
+      expect(result.statusCode).toBe(400);
+      const body = JSON.parse(result.body);
+      expect(body.message).toBe(
+        "domainName and userId query parameters are required"
+      );
+    }
   });
 
   it("returns 409 if the URL already exists", async () => {
     const domainName = "example.com";
+    const userId = "1";
     const expectedUrl = `https://${domainName}`;
     const shortUrl = "abc123";
 
     const event = {
-      queryStringParameters: { domainName },
+      queryStringParameters: { domainName, userId },
     } as unknown as APIGatewayProxyEvent;
 
     dbMock
@@ -46,13 +54,15 @@ describe("createUrl handler", () => {
 
   it("returns 201 and creates a short URL successfully", async () => {
     const domainName = "example.com";
+    const userId = "1";
     const expectedUrl = `https://${domainName}`;
 
     const event = {
-      queryStringParameters: { domainName },
+      queryStringParameters: { domainName, userId },
     } as unknown as APIGatewayProxyEvent;
 
     dbMock.on(GetCommand).resolves({ Item: undefined });
+    dbMock.on(PutCommand).resolves({});
     dbMock.on(PutCommand).resolves({});
 
     const result = await handler(event);
@@ -66,12 +76,14 @@ describe("createUrl handler", () => {
 
   it("returns 500 if DynamoDB.send throws an error", async () => {
     const domainName = "example.com";
+    const userId = "1";
 
     const event = {
-      queryStringParameters: { domainName },
+      queryStringParameters: { domainName, userId },
     } as unknown as APIGatewayProxyEvent;
     dbMock.on(GetCommand).resolves({ Item: undefined });
     dbMock.on(PutCommand).rejects(new Error("Dynamo error"));
+
     const result = await handler(event);
 
     expect(result.statusCode).toBe(500);
