@@ -4,8 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { User } from "../../types/User";
 
 const dynamoDbClient = new DynamoDBClient({});
-const usersTableName = process.env.USERS_TABLE_NAME!;
-//const userLinssTableName = process.env.USERS_LINKS_TABLE_NAME!;
+const tableName = process.env.USERS_TABLE_NAME!;
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -24,7 +23,7 @@ export const handler = async (
     }
 
     const getParams = {
-      TableName: usersTableName,
+      TableName: tableName,
       Key: { userId },
     };
     const getCommand = new GetCommand(getParams);
@@ -53,7 +52,7 @@ export const handler = async (
     };
 
     const putParams = {
-      TableName: usersTableName,
+      TableName: tableName,
       Item: user,
     };
 
