@@ -20,7 +20,7 @@ describe("getUrl handler", () => {
     const result = await handler(event);
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
-    expect(body.message).toBe("URL is required");
+    expect(body.message).toBe("url is required");
   });
 
   it("returns 404 if no item is found in DynamoDB", async () => {

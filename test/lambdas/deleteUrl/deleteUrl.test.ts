@@ -20,7 +20,7 @@ describe("deleteUrl handler", () => {
     const result = await handler(event);
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
-    expect(body.message).toBe("shortCode is required");
+    expect(body.message).toBe("url is required");
   });
 
   it("returns 404 if URL is not found in DynamoDB", async () => {
@@ -28,7 +28,7 @@ describe("deleteUrl handler", () => {
       queryStringParameters: { url: "abc123" },
     } as unknown as APIGatewayProxyEvent;
 
-    dbMock.on(DeleteCommand).resolves({ Attributes: undefined });
+    dbMock.on(DeleteCommand).resolves({ $metadata: { httpStatusCode: 404 } });
 
     const result = await handler(event);
     expect(result.statusCode).toBe(404);
@@ -41,7 +41,8 @@ describe("deleteUrl handler", () => {
       queryStringParameters: { url: "abc123" },
     } as unknown as APIGatewayProxyEvent;
 
-    dbMock.on(DeleteCommand).resolves({ Attributes: { deleted: true } });
+    // Simulate a successful delete where the URL exists
+    dbMock.on(DeleteCommand).resolves({ $metadata: { httpStatusCode: 200 } });
 
     const result = await handler(event);
     expect(result.statusCode).toBe(200);

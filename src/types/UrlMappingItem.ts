@@ -1,6 +1,6 @@
 export interface UrlMappingItem {
   shortUrl: string;
-  createdAt: Date;
+  createdAt: string;
   originalUrl: string;
   visitCount: number;
 }

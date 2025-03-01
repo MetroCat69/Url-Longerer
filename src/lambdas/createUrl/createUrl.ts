@@ -31,7 +31,7 @@ export const handler = async (
 
     const originalUrl = `https://${domainName}`;
 
-    const createdAt = new Date();
+    const createdAt = new Date().toISOString();
     const shortUrl = simpleHash(originalUrl);
 
     // Check if the URL already exists

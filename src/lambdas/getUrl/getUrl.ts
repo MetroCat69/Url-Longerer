@@ -11,13 +11,10 @@ export const handler = async (
   try {
     const shortUrl = event.queryStringParameters?.url;
     if (!shortUrl) {
-      console.error(
-        "missing parameter short query",
-        event.queryStringParameters
-      );
+      console.error("missing parameter url", event.queryStringParameters);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "URL is required" }),
+        body: JSON.stringify({ message: "url is required" }),
       };
     }
 
