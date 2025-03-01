@@ -20,7 +20,7 @@ describe("createUrl handler", () => {
     const result = await handler(event);
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
-    expect(body.message).toBe("url query parameter is required");
+    expect(body.message).toBe("domainName query parameter is required");
   });
 
   it("returns 409 if the URL already exists", async () => {

@@ -20,12 +20,11 @@ export const handler = async (
     const domainName = event.queryStringParameters?.domainName;
 
     if (!domainName) {
-      console.error("Missing url query parameter", event);
+      console.error("Missing domainName query parameter", event);
       return {
         statusCode: 400,
         body: JSON.stringify({
-          message: "url query parameter is required",
-          example: "?url=https://example.com",
+          message: "domainName query parameter is required",
         }),
       };
     }

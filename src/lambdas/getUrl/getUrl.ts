@@ -17,7 +17,7 @@ export const handler = async (
       );
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "shortCode is required" }),
+        body: JSON.stringify({ message: "URL is required" }),
       };
     }
 

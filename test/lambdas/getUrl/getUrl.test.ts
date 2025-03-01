@@ -12,7 +12,7 @@ describe("getUrl handler", () => {
     dbMock.reset();
   });
 
-  it("returns 400 if 'shortUrl' query parameter is missing", async () => {
+  it("returns 400 if 'url' query parameter is missing", async () => {
     const event = {
       queryStringParameters: {}, // missing shortUrl
     } as APIGatewayProxyEvent;
@@ -20,7 +20,7 @@ describe("getUrl handler", () => {
     const result = await handler(event);
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
-    expect(body.message).toBe("shortCode is required");
+    expect(body.message).toBe("URL is required");
   });
 
   it("returns 404 if no item is found in DynamoDB", async () => {
