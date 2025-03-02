@@ -17,9 +17,15 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const urlGSIName = "IndxUserId";
+    urlTable.addGlobalSecondaryIndex({
+      indexName: urlGSIName,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.NUMBER },
+    });
+
     const userTable = new dynamodb.Table(this, "UserTable", {
       tableName: "UserTable",
-      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.NUMBER },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -34,7 +40,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       handler: "createUrl.handler",
       timeout: cdk.Duration.seconds(10),
       environment: {
-        TABLE_NAME: urlTable.tableName,
+        URL_TABLE_NAME: urlTable.tableName,
       },
     });
 
@@ -44,7 +50,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       handler: "getUrl.handler",
       timeout: cdk.Duration.seconds(10),
       environment: {
-        TABLE_NAME: urlTable.tableName,
+        URL_TABLE_NAME: urlTable.tableName,
       },
     });
 
@@ -54,7 +60,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       handler: "deleteUrl.handler",
       timeout: cdk.Duration.seconds(10),
       environment: {
-        TABLE_NAME: urlTable.tableName,
+        URL_TABLE_NAME: urlTable.tableName,
       },
     });
 
@@ -85,7 +91,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       handler: "createUser.handler",
       timeout: cdk.Duration.seconds(10),
       environment: {
-        TABLE_NAME: userTable.tableName,
+        USERS_TABLE_NAME: userTable.tableName,
       },
     });
 
@@ -95,21 +101,23 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       handler: "deleteUser.handler",
       timeout: cdk.Duration.seconds(10),
       environment: {
-        TABLE_NAME: userTable.tableName,
+        USERS_TABLE_NAME: userTable.tableName,
+        URL_TABLE_NAME: urlTable.tableName,
+        URL_GSI_NAME: urlGSIName,
       },
     });
 
     userTable.grantReadWriteData(createUserFunction);
     urlTable.grantWriteData(deleteUserFunction);
 
-    const userResource = api.root.addResource("url");
+    const userResource = api.root.addResource("user");
 
     userResource.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createUserFunction)
     );
 
-    urlResource.addMethod(
+    userResource.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(deleteUserFunction)
     );

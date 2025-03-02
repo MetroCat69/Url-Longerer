@@ -4,7 +4,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 const dynamoDbClient = new DynamoDBClient({});
 const urlTableName = process.env.URL_TABLE_NAME!;
-const userLinkTableName = process.env.USER_LINK_TABLE_NAME!;
 
 const deleteUrlFromTable = async (
   params: DeleteCommandInput,
@@ -26,12 +25,9 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const shortUrl = event.queryStringParameters?.url;
-  const userId = event.queryStringParameters?.userId
-    ? parseInt(event.queryStringParameters.userId, 10)
-    : null;
 
   try {
-    if (!shortUrl || !userId) {
+    if (!shortUrl) {
       console.error("Missing parameters", event.queryStringParameters);
       return {
         statusCode: 400,
@@ -44,18 +40,9 @@ export const handler = async (
       Key: { shortUrl },
     };
 
-    const userLinkParams = {
-      TableName: userLinkTableName,
-      Key: { userId, shortUrl },
-    };
-
     const urlDeleted = await deleteUrlFromTable(urlParams, "url table");
-    const userLinkDeleted = await deleteUrlFromTable(
-      userLinkParams,
-      userLinkTableName
-    );
 
-    if (urlDeleted && userLinkDeleted) {
+    if (urlDeleted) {
       return {
         statusCode: 200,
         body: JSON.stringify({ message: "URL deleted successfully" }),

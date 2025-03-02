@@ -1,7 +1,8 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { User } from "../../types/User";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 
 const dynamoDbClient = new DynamoDBClient({});
 const tableName = process.env.USERS_TABLE_NAME!;
@@ -22,26 +23,6 @@ export const handler = async (
       };
     }
 
-    const getParams = {
-      TableName: tableName,
-      Key: { userId },
-    };
-    const getCommand = new GetCommand(getParams);
-    console.log("Checking if URL already exists", getParams);
-    const existingUser = await dynamoDbClient.send(getCommand);
-    console.log("Existing Users", existingUser);
-
-    if (existingUser.Item) {
-      console.log("User already exists", event);
-      return {
-        statusCode: 409,
-        body: JSON.stringify({
-          message: "User already exists",
-          userId,
-        }),
-      };
-    }
-
     const createdAt = new Date().toISOString();
     const user: User = {
       userId,
@@ -54,11 +35,25 @@ export const handler = async (
     const putParams = {
       TableName: tableName,
       Item: user,
+      ConditionExpression: "attribute_not_exists(userId)",
     };
 
     console.log("Creating user with params", putParams);
-    const putCommand = new PutCommand(putParams);
-    await dynamoDbClient.send(putCommand);
+    const command = new PutCommand(putParams);
+    try {
+      await dynamoDbClient.send(command);
+    } catch (err) {
+      if (err instanceof ConditionalCheckFailedException) {
+        return {
+          statusCode: 500,
+          body: JSON.stringify({
+            message: "Item already exists",
+            putParams,
+          }),
+        };
+      }
+      throw err;
+    }
     console.log("Created user", user);
 
     return {
