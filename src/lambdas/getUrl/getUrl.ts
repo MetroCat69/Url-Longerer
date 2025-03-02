@@ -4,7 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
 
 const dynamoDbClient = new DynamoDBClient({});
-const tableName = process.env.TABLE_NAME!;
+const tableName = process.env.URL_TABLE_NAME!;
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {

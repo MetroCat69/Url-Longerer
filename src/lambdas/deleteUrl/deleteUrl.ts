@@ -1,9 +1,25 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, DeleteCommandInput } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
 const dynamoDbClient = new DynamoDBClient({});
-const tableName = process.env.TABLE_NAME!;
+const urlTableName = process.env.URL_TABLE_NAME!;
+
+const deleteUrlFromTable = async (
+  params: DeleteCommandInput,
+  tableName: string
+) => {
+  console.log(`Deleting URL from ${tableName}`, params);
+  const result = await dynamoDbClient.send(new DeleteCommand(params));
+
+  if (result && result.$metadata.httpStatusCode === 200) {
+    console.log(`Successfully deleted URL from ${tableName}`, params);
+    return true;
+  } else {
+    console.error(`Failed to delete URL from ${tableName}`, params);
+    return false;
+  }
+};
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -12,32 +28,26 @@ export const handler = async (
 
   try {
     if (!shortUrl) {
-      console.error("missing parameter url", event.queryStringParameters);
+      console.error("Missing parameters", event.queryStringParameters);
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "url is required" }),
+        body: JSON.stringify({ message: "url and userId are required" }),
       };
     }
 
-    const params = {
-      TableName: tableName,
-      Key: {
-        shortUrl,
-      },
+    const urlParams = {
+      TableName: urlTableName,
+      Key: { shortUrl },
     };
 
-    console.log("deleting url", params);
-    const command = new DeleteCommand(params);
-    const result = await dynamoDbClient.send(command);
+    const urlDeleted = await deleteUrlFromTable(urlParams, "url table");
 
-    if (result && result.$metadata.httpStatusCode === 200) {
-      console.log("deleted url", params);
+    if (urlDeleted) {
       return {
         statusCode: 200,
         body: JSON.stringify({ message: "URL deleted successfully" }),
       };
     } else {
-      console.error("URL not found");
       return {
         statusCode: 404,
         body: JSON.stringify({ message: "URL not found" }),

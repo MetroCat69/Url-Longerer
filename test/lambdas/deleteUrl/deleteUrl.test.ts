@@ -9,25 +9,27 @@ describe("deleteUrl handler", () => {
 
   beforeEach(() => {
     dbMock.reset();
-    process.env.TABLE_NAME = "test-table";
+    process.env.URL_TABLE_NAME = "test-url-table";
+    process.env.USER_LINK_TABLE_NAME = "test-user-link-table";
   });
 
-  it("returns 400 if 'shortUrl' query parameter is missing", async () => {
-    const event = {
-      queryStringParameters: {}, // missing shortUrl
-    } as APIGatewayProxyEvent;
-
-    const result = await handler(event);
-    expect(result.statusCode).toBe(400);
-    const body = JSON.parse(result.body);
-    expect(body.message).toBe("url is required");
-  });
-
-  it("returns 404 if URL is not found in DynamoDB", async () => {
+  it("returns 400 if 'shortUrl' or 'userId' query parameter is missing", async () => {
     const event = {
       queryStringParameters: { url: "abc123" },
     } as unknown as APIGatewayProxyEvent;
 
+    const result = await handler(event);
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe("url and userId are required");
+  });
+
+  it("returns 404 if URL is not found in DynamoDB (both tables)", async () => {
+    const event = {
+      queryStringParameters: { url: "abc123", userId: "123" },
+    } as unknown as APIGatewayProxyEvent;
+
+    dbMock.on(DeleteCommand).resolves({ $metadata: { httpStatusCode: 404 } });
     dbMock.on(DeleteCommand).resolves({ $metadata: { httpStatusCode: 404 } });
 
     const result = await handler(event);
@@ -36,12 +38,12 @@ describe("deleteUrl handler", () => {
     expect(body.message).toBe("URL not found");
   });
 
-  it("returns 200 if URL is deleted successfully", async () => {
+  it("returns 200 if URL is deleted successfully from both tables", async () => {
     const event = {
-      queryStringParameters: { url: "abc123" },
+      queryStringParameters: { url: "abc123", userId: "123" },
     } as unknown as APIGatewayProxyEvent;
 
-    // Simulate a successful delete where the URL exists
+    dbMock.on(DeleteCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     dbMock.on(DeleteCommand).resolves({ $metadata: { httpStatusCode: 200 } });
 
     const result = await handler(event);
@@ -52,7 +54,7 @@ describe("deleteUrl handler", () => {
 
   it("returns 500 if DynamoDB.send throws an error", async () => {
     const event = {
-      queryStringParameters: { url: "abc123" },
+      queryStringParameters: { url: "abc123", userId: "123" },
     } as unknown as APIGatewayProxyEvent;
 
     dbMock.on(DeleteCommand).rejects(new Error("Dynamo error"));

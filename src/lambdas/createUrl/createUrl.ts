@@ -1,5 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { UrlMappingItem } from "../../types/UrlMappingItem";
 import { createHash } from "crypto";
@@ -11,67 +12,62 @@ function simpleHash(input: string): string {
 }
 
 const dynamoDbClient = new DynamoDBClient({});
-const tableName = process.env.TABLE_NAME!;
+const urlTableName = process.env.URL_TABLE_NAME!;
 
 export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
     const domainName = event.queryStringParameters?.domainName;
+    const userId = event.queryStringParameters?.userId
+      ? parseInt(event.queryStringParameters.userId)
+      : null;
 
-    if (!domainName) {
-      console.error("Missing domainName query parameter", event);
+    if (!domainName || !userId) {
+      console.error("Missing required query parameters", event);
       return {
         statusCode: 400,
         body: JSON.stringify({
-          message: "domainName query parameter is required",
+          message: "domainName and userId query parameters are required",
         }),
       };
     }
 
     const originalUrl = `https://${domainName}`;
-
     const createdAt = new Date().toISOString();
     const shortUrl = simpleHash(originalUrl);
 
-    // Check if the URL already exists
-    const getParams = {
-      TableName: tableName,
-      Key: { shortUrl },
-    };
-
-    console.log("Checking if URL already exists", getParams);
-    const getCommand = new GetCommand(getParams);
-    const existingItem = await dynamoDbClient.send(getCommand);
-    console.log("Existing Items", existingItem);
-
-    if (existingItem.Item) {
-      console.log("URL already exists", existingItem.Item);
-      return {
-        statusCode: 409,
-        body: JSON.stringify({
-          message: "Short URL already exists",
-          shortUrl,
-          originalUrl,
-        }),
-      };
-    }
-
-    const item: UrlMappingItem = {
+    const urlMappingItem: UrlMappingItem = {
       shortUrl,
+      userId,
       createdAt,
       originalUrl,
       visitCount: 0,
     };
 
     const putParams = {
-      TableName: tableName,
-      Item: item,
+      TableName: urlTableName,
+      Item: urlMappingItem,
+      ConditionExpression: "attribute_not_exists(shortUrl)",
     };
 
     console.log("Creating URL with params", putParams);
     const command = new PutCommand(putParams);
-    await dynamoDbClient.send(command);
+    try {
+      const ans = await dynamoDbClient.send(command);
+      console.log(ans);
+    } catch (err) {
+      if (err instanceof ConditionalCheckFailedException) {
+        return {
+          statusCode: 500,
+          body: JSON.stringify({
+            message: "Item already exists",
+            putParams,
+          }),
+        };
+      }
+      throw err;
+    }
     console.log("Created URL", putParams);
 
     return {
