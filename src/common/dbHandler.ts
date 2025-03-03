@@ -106,10 +106,7 @@ export const updateRecord = async (
   tableName: string,
   key: Record<string, unknown>,
   UpdateExpression: string,
-  options?: Omit<
-    UpdateCommandInput,
-    "TableName" | "Key" | "UpdateExpression" | "ExpressionAttributeValues"
-  >
+  options?: Omit<UpdateCommandInput, "TableName" | "Key" | "UpdateExpression">
 ) => {
   const updateParams: UpdateCommandInput = {
     TableName: tableName,
@@ -132,10 +129,10 @@ export const updateRecord = async (
   console.log("Successfully created item with params", updateParams);
 };
 
-export const queryDb = async (
+export const queryDb = async <T>(
   dynamoDbClient: DynamoDBClient,
   queryParams: QueryCommandInput
-) => {
+): Promise<T[]> => {
   console.log(`Quering data with params:`, queryParams);
 
   const querryCommand = new QueryCommand(queryParams);
@@ -149,5 +146,6 @@ export const queryDb = async (
 
   console.log(`Query result:`, queryResult);
 
-  return queryResult.Items || [];
+  const result = queryResult.Items || [];
+  return result as T[];
 };

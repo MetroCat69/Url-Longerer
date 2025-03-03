@@ -6,7 +6,7 @@ import { Construct } from "constructs";
 import * as path from "path";
 
 const lambdaPath = "dist/src/lambdas/";
-const layerPath = "dist/src/";
+const layerPath = "dist/src";
 
 export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -30,8 +30,8 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    const commonLayer = new lambda.LayerVersion(this, "DbHandlerLayer", {
-      code: lambda.Code.fromAsset(path.join(layerPath, "DbHandlerLayer")),
+    const commonLayer = new lambda.LayerVersion(this, "commonLayer", {
+      code: lambda.Code.fromAsset(path.join(layerPath, "common")),
       compatibleRuntimes: [lambda.Runtime.NODEJS_LATEST],
       description:
         "Layer containing common stuff like DB handler and Lambda wrapper",

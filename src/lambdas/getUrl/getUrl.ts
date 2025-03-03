@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { APIGatewayProxyResult } from "aws-lambda";
-import { getRecord, updateRecord } from "../../common/dbHandler";
-import { lambdaWrapper } from "../../common/lambdaWrapper";
+import { getRecord, updateRecord } from "/opt/dbHandler";
+import { lambdaWrapper } from "/opt/lambdaWrapper";
 import { UrlRecord } from "../../types/UrlRecord";
 
 const dynamoDbClient = new DynamoDBClient({});
@@ -36,7 +36,10 @@ const getUrlHandler = async (
     dynamoDbClient,
     urlTableName,
     { shortUrl },
-    "SET visitCount = visitCount + 1"
+    "SET visitCount = visitCount + :inc",
+    {
+      ExpressionAttributeValues: { ":inc": 1 },
+    }
   );
 
   console.log("Successfully incremented visit count");

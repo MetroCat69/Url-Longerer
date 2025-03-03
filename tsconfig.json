@@ -21,7 +21,11 @@
     "skipLibCheck": true,
     // "rootDir": "./src",
     "outDir": "./dist",
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "/opt/*": ["src/common/*"]
+    }
   },
   "exclude": [
     "node_modules",

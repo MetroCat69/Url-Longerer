@@ -27,3 +27,4 @@ make sure domain is not written twice use a hash for a domain for that as index
 and have short code and domain hash
 make sure user exists before writing (auth)
 ADD CHECK DELETE IS SUSSEFUL
+deleting nothing results in succses

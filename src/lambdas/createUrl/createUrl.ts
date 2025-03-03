@@ -1,6 +1,6 @@
 import { APIGatewayProxyResult } from "aws-lambda";
-import { lambdaWrapper } from "../../common/lambdaWrapper";
-import { createRecord, createDynamoDBClient } from "../../common/dbHandler";
+import { lambdaWrapper } from "/opt/lambdaWrapper";
+import { createRecord, createDynamoDBClient } from "/opt/dbHandler";
 import { UrlRecord } from "../../types/UrlRecord";
 import { createHash } from "crypto";
 

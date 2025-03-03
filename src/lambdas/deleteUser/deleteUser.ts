@@ -1,10 +1,7 @@
 import { APIGatewayProxyResult } from "aws-lambda";
-import {
-  deleteRecord,
-  queryDb,
-  createDynamoDBClient,
-} from "../../common/dbHandler";
-import { lambdaWrapper } from "../../common/lambdaWrapper";
+import { deleteRecord, queryDb, createDynamoDBClient } from "/opt/dbHandler";
+import { lambdaWrapper } from "/opt/lambdaWrapper";
+import { UrlRecord } from "../../types/UrlRecord";
 
 const dynamoDbClient = createDynamoDBClient();
 const urlTableName = process.env.URL_TABLE_NAME!;
@@ -25,7 +22,7 @@ const deleteUrlsFromUrlTable = async (userId: number) => {
     },
   };
 
-  const userUrls = await queryDb(dynamoDbClient, queryParams);
+  const userUrls: UrlRecord[] = await queryDb(dynamoDbClient, queryParams);
 
   if (userUrls.length === 0) {
     console.log(`No URLs found for userId ${userId}`);
@@ -33,26 +30,16 @@ const deleteUrlsFromUrlTable = async (userId: number) => {
   }
 
   const deletePromises = userUrls.map((urlItem) => {
-    const deleteParams = {
-      TableName: urlTableName,
-      Key: { urlId: urlItem.urlId },
-    };
-    return deleteRecord(dynamoDbClient, urlTableName, deleteParams.Key);
+    return deleteRecord(dynamoDbClient, urlTableName, {
+      shortUrl: urlItem.shortUrl,
+    });
   });
   console.log("deleting user urls");
   await Promise.all(deletePromises);
 };
 
 const deleteUserFromUserTable = async (userId: number) => {
-  const userDeleteParams = {
-    TableName: userTableName,
-    Key: { userId },
-  };
-  return await deleteRecord(
-    dynamoDbClient,
-    userTableName,
-    userDeleteParams.Key
-  );
+  return await deleteRecord(dynamoDbClient, userTableName, { userId });
 };
 
 const deleteUser = async (

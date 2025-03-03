@@ -4,12 +4,15 @@
 
 aws
 type script
-npm
+node
 lambdas
 dynamodb
 cdk
+eslint
+aws sam
 
 ## how to run locally
 
-currently I coudn't figure out how to run stuff locally
-you will intigration tests in the future for some stuff
+you should have docker instaled
+then run sudo dockerd
+then use sam

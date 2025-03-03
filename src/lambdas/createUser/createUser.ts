@@ -1,7 +1,7 @@
 import { APIGatewayProxyResult } from "aws-lambda";
-import { lambdaWrapper } from "../../common/lambdaWrapper";
+import { lambdaWrapper } from "/opt/lambdaWrapper";
 import { User } from "../../types/User";
-import { createRecord, createDynamoDBClient } from "../../common/dbHandler";
+import { createRecord, createDynamoDBClient } from "/opt/dbHandler";
 
 const dynamoDbClient = createDynamoDBClient();
 const userTableName = process.env.USERS_TABLE_NAME!;
