@@ -1,9 +1,15 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { UrlMappingItem } from "../../types/UrlMappingItem";
+import { APIGatewayProxyResult } from "aws-lambda";
+import { lambdaWrapper } from "../../common/lambdaWrapper";
+import { createRecord, createDynamoDBClient } from "../../common/dbHandler";
+import { UrlRecord } from "../../types/UrlRecord";
 import { createHash } from "crypto";
+
+export interface CreateUrlInput {
+  domainName: string;
+  userId: number;
+}
+const dynamoDbClient = createDynamoDBClient();
+const urlTableName = process.env.URL_TABLE_NAME!;
 
 function simpleHash(input: string): string {
   const hash = createHash("sha256");
@@ -11,81 +17,43 @@ function simpleHash(input: string): string {
   return hash.digest("hex");
 }
 
-const dynamoDbClient = new DynamoDBClient({});
-const urlTableName = process.env.URL_TABLE_NAME!;
-
-export const handler = async (
-  event: APIGatewayProxyEvent
+const createUrl = async (
+  validatedBody: CreateUrlInput
 ): Promise<APIGatewayProxyResult> => {
-  try {
-    const domainName = event.queryStringParameters?.domainName;
-    const userId = event.queryStringParameters?.userId
-      ? parseInt(event.queryStringParameters.userId)
-      : null;
+  const { domainName, userId } = validatedBody;
 
-    if (!domainName || !userId) {
-      console.error("Missing required query parameters", event);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: "domainName and userId query parameters are required",
-        }),
-      };
-    }
+  const originalUrl = `https://${domainName}`;
+  const shortUrl = simpleHash(originalUrl);
+  const createdAt = new Date().toISOString();
 
-    const originalUrl = `https://${domainName}`;
-    const createdAt = new Date().toISOString();
-    const shortUrl = simpleHash(originalUrl);
+  const urlRecord: UrlRecord = {
+    shortUrl,
+    userId: userId,
+    createdAt,
+    originalUrl,
+    visitCount: 0,
+  };
 
-    const urlMappingItem: UrlMappingItem = {
-      shortUrl,
-      userId,
-      createdAt,
-      originalUrl,
-      visitCount: 0,
-    };
+  await createRecord(
+    dynamoDbClient,
+    urlTableName,
+    urlRecord,
+    "shortUrl",
+    "attribute_not_exists(shortUrl)"
+  );
 
-    const putParams = {
-      TableName: urlTableName,
-      Item: urlMappingItem,
-      ConditionExpression: "attribute_not_exists(shortUrl)",
-    };
+  console.log("Created URL", urlRecord);
 
-    console.log("Creating URL with params", putParams);
-    const command = new PutCommand(putParams);
-    try {
-      const ans = await dynamoDbClient.send(command);
-      console.log(ans);
-    } catch (err) {
-      if (err instanceof ConditionalCheckFailedException) {
-        return {
-          statusCode: 500,
-          body: JSON.stringify({
-            message: "Item already exists",
-            putParams,
-          }),
-        };
-      }
-      throw err;
-    }
-    console.log("Created URL", putParams);
-
-    return {
-      statusCode: 201,
-      body: JSON.stringify({
-        message: "Short URL created successfully",
-        shortUrl,
-        originalUrl,
-      }),
-    };
-  } catch (error) {
-    console.error("Failed to create short URL with error", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Failed to create short URL",
-        error: (error as Error).message,
-      }),
-    };
-  }
+  return {
+    statusCode: 201,
+    body: JSON.stringify({
+      message: "Short URL created successfully",
+      ...urlRecord,
+    }),
+  };
 };
+
+export const handler = lambdaWrapper<CreateUrlInput>(
+  ["domainName", "userId"],
+  createUrl
+);

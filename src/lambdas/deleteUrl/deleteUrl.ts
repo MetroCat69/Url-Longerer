@@ -1,66 +1,28 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DeleteCommand, DeleteCommandInput } from "@aws-sdk/lib-dynamodb";
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyResult } from "aws-lambda";
+import { lambdaWrapper } from "../../common/lambdaWrapper"; // Importing the lambdaWrapper utility
+import { deleteRecord, createDynamoDBClient } from "../../common/dbHandler"; // Import the deleteRecord function
 
-const dynamoDbClient = new DynamoDBClient({});
+const dynamoDbClient = createDynamoDBClient();
 const urlTableName = process.env.URL_TABLE_NAME!;
 
-const deleteUrlFromTable = async (
-  params: DeleteCommandInput,
-  tableName: string
-) => {
-  console.log(`Deleting URL from ${tableName}`, params);
-  const result = await dynamoDbClient.send(new DeleteCommand(params));
+export interface DeleteUrlInput {
+  url: string;
+}
 
-  if (result && result.$metadata.httpStatusCode === 200) {
-    console.log(`Successfully deleted URL from ${tableName}`, params);
-    return true;
-  } else {
-    console.error(`Failed to delete URL from ${tableName}`, params);
-    return false;
-  }
-};
-
-export const handler = async (
-  event: APIGatewayProxyEvent
+const deleteUrl = async (
+  validatedBody: DeleteUrlInput
 ): Promise<APIGatewayProxyResult> => {
-  const shortUrl = event.queryStringParameters?.url;
+  const { url } = validatedBody;
+  await deleteRecord(dynamoDbClient, urlTableName, {
+    Key: { shortUrl: url },
+  });
 
-  try {
-    if (!shortUrl) {
-      console.error("Missing parameters", event.queryStringParameters);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: "url and userId are required" }),
-      };
-    }
+  console.log("Deleted url", url);
 
-    const urlParams = {
-      TableName: urlTableName,
-      Key: { shortUrl },
-    };
-
-    const urlDeleted = await deleteUrlFromTable(urlParams, "url table");
-
-    if (urlDeleted) {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ message: "URL deleted successfully" }),
-      };
-    } else {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: "URL not found" }),
-      };
-    }
-  } catch (error) {
-    console.error("Failed to delete URL", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Failed to delete URL",
-        error: (error as Error).message,
-      }),
-    };
-  }
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "URL deleted successfully" }),
+  };
 };
+
+export const handler = lambdaWrapper<DeleteUrlInput>(["url"], deleteUrl);

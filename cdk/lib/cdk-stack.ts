@@ -6,6 +6,7 @@ import { Construct } from "constructs";
 import * as path from "path";
 
 const lambdaPath = "dist/src/lambdas/";
+const layerPath = "dist/src/";
 
 export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -29,6 +30,13 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const commonLayer = new lambda.LayerVersion(this, "DbHandlerLayer", {
+      code: lambda.Code.fromAsset(path.join(layerPath, "DbHandlerLayer")),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_LATEST],
+      description:
+        "Layer containing common stuff like DB handler and Lambda wrapper",
+    });
+
     const api = new apigateway.RestApi(this, "UrlShortenerApi", {
       restApiName: "URL Shortener Service",
       description: "This service handles URL shortening.",
@@ -39,6 +47,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(lambdaPath, "createUrl")),
       handler: "createUrl.handler",
       timeout: cdk.Duration.seconds(10),
+      layers: [commonLayer],
       environment: {
         URL_TABLE_NAME: urlTable.tableName,
       },
@@ -49,6 +58,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(lambdaPath, "getUrl")),
       handler: "getUrl.handler",
       timeout: cdk.Duration.seconds(10),
+      layers: [commonLayer],
       environment: {
         URL_TABLE_NAME: urlTable.tableName,
       },
@@ -59,6 +69,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(lambdaPath, "deleteUrl")),
       handler: "deleteUrl.handler",
       timeout: cdk.Duration.seconds(10),
+      layers: [commonLayer],
       environment: {
         URL_TABLE_NAME: urlTable.tableName,
       },
@@ -90,6 +101,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(lambdaPath, "createUser")),
       handler: "createUser.handler",
       timeout: cdk.Duration.seconds(10),
+      layers: [commonLayer],
       environment: {
         USERS_TABLE_NAME: userTable.tableName,
       },
@@ -100,6 +112,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(lambdaPath, "deleteUser")),
       handler: "deleteUser.handler",
       timeout: cdk.Duration.seconds(10),
+      layers: [commonLayer],
       environment: {
         USERS_TABLE_NAME: userTable.tableName,
         URL_TABLE_NAME: urlTable.tableName,

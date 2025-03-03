@@ -1,4 +1,4 @@
-export interface UrlMappingItem {
+export interface UrlRecord {
   shortUrl: string;
   userId: number;
   createdAt: string;
