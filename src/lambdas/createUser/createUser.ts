@@ -11,7 +11,13 @@ const createUser = async ({
 }: {
   body: User;
 }): Promise<APIGatewayProxyResult> => {
-  await createRecord(dynamoDbClient, userTableName, body, "userId");
+  await createRecord(
+    dynamoDbClient,
+    userTableName,
+    body,
+    "userId",
+    "attribute_not_exists(userId)"
+  );
 
   console.log("Created user", body);
 
