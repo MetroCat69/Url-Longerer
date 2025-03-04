@@ -1,57 +1,128 @@
+import * as cdk from "aws-cdk-lib";
 import { Template, Match } from "aws-cdk-lib/assertions";
 import { CdkUrlShortenerStack } from "../../cdk/lib/cdk-stack";
-import { App } from "aws-cdk-lib";
 
 describe("CdkUrlShortenerStack", () => {
-  let app: App;
-  let stack: CdkUrlShortenerStack;
+  let stack: cdk.Stack;
   let template: Template;
 
-  beforeAll(() => {
-    app = new App();
+  beforeEach(() => {
+    const app = new cdk.App();
     stack = new CdkUrlShortenerStack(app, "TestStack");
     template = Template.fromStack(stack);
   });
 
-  test("DynamoDB Table Created", () => {
+  test("should create DynamoDB tables", () => {
     template.hasResourceProperties("AWS::DynamoDB::Table", {
-      AttributeDefinitions: [
-        {
-          AttributeName: "shortUrl",
-          AttributeType: "S",
-        },
-      ],
       KeySchema: [
         {
           AttributeName: "shortUrl",
           KeyType: "HASH",
         },
       ],
-    });
-  });
-
-  test("Lambda Functions Created with Correct Environment Variables", () => {
-    ["CreateUrlFunction", "GetUrlFunction", "DeleteUrlFunction"].forEach(() => {
-      template.hasResourceProperties("AWS::Lambda::Function", {
-        Environment: {
-          Variables: {
-            TABLE_NAME: Match.anyValue(),
-          },
+      AttributeDefinitions: [
+        {
+          AttributeName: "shortUrl",
+          AttributeType: "S",
         },
-      });
+        {
+          AttributeName: "userId",
+          AttributeType: "N",
+        },
+      ],
+      GlobalSecondaryIndexes: Match.arrayWith([
+        Match.objectLike({
+          IndexName: "IndxUserId",
+          KeySchema: [
+            {
+              AttributeName: "userId",
+              KeyType: "HASH",
+            },
+          ],
+        }),
+      ]),
+    });
+
+    template.hasResourceProperties("AWS::DynamoDB::Table", {
+      KeySchema: [
+        {
+          AttributeName: "userId",
+          KeyType: "HASH",
+        },
+      ],
+      AttributeDefinitions: [
+        {
+          AttributeName: "userId",
+          AttributeType: "N",
+        },
+      ],
     });
   });
 
-  test("API Gateway Created with Endpoints", () => {
-    template.resourceCountIs("AWS::ApiGateway::RestApi", 1);
+  test("should create Lambda functions", () => {
+    // URL-related Lambda functions
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Handler: "createUrl.handler",
+    });
+
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Handler: "getUrl.handler",
+    });
+
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Handler: "deleteUrl.handler",
+    });
+
+    // User-related Lambda functions
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Handler: "createUser.handler",
+    });
+
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Handler: "getUser.handler",
+    });
+
+    template.hasResourceProperties("AWS::Lambda::Function", {
+      Handler: "deleteUser.handler",
+    });
+  });
+
+  test("should create API Gateway with correct resources and methods", () => {
+    template.hasResourceProperties("AWS::ApiGateway::RestApi", {
+      Name: "URL Shortener Service",
+    });
+
+    template.hasResourceProperties("AWS::ApiGateway::Resource", {
+      PathPart: "url",
+    });
+
+    template.hasResourceProperties("AWS::ApiGateway::Resource", {
+      PathPart: "user",
+    });
+
     template.hasResourceProperties("AWS::ApiGateway::Method", {
       HttpMethod: "POST",
+      ResourceId: Match.anyValue(),
+      RestApiId: Match.anyValue(),
     });
+
     template.hasResourceProperties("AWS::ApiGateway::Method", {
       HttpMethod: "GET",
+      ResourceId: Match.anyValue(),
+      RestApiId: Match.anyValue(),
     });
+
     template.hasResourceProperties("AWS::ApiGateway::Method", {
       HttpMethod: "DELETE",
+      ResourceId: Match.anyValue(),
+      RestApiId: Match.anyValue(),
+    });
+  });
+
+  test("should create a common Lambda layer", () => {
+    template.hasResourceProperties("AWS::Lambda::LayerVersion", {
+      Description:
+        "Layer containing common stuff like DB handler and Lambda wrapper",
     });
   });
 });
