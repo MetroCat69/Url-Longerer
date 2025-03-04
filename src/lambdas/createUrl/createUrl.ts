@@ -15,7 +15,7 @@ const urlTableName = process.env.URL_TABLE_NAME!;
 function simpleHash(input: string): string {
   const hash = createHash("sha256");
   hash.update(input);
-  return hash.digest("hex");
+  return hash.digest("hex").slice(0, 8);
 }
 
 const createUrl = async ({
