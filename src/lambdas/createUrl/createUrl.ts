@@ -8,6 +8,7 @@ export interface CreateUrlInput {
   domainName: string;
   userId: number;
 }
+
 const dynamoDbClient = createDynamoDBClient();
 const urlTableName = process.env.URL_TABLE_NAME!;
 
@@ -17,10 +18,12 @@ function simpleHash(input: string): string {
   return hash.digest("hex");
 }
 
-const createUrl = async (
-  validatedBody: CreateUrlInput
-): Promise<APIGatewayProxyResult> => {
-  const { domainName, userId } = validatedBody;
+const createUrl = async ({
+  body,
+}: {
+  body: CreateUrlInput;
+}): Promise<APIGatewayProxyResult> => {
+  const { domainName, userId } = body;
 
   const originalUrl = `https://${domainName}`;
   const shortUrl = simpleHash(originalUrl);
@@ -53,7 +56,8 @@ const createUrl = async (
   };
 };
 
-export const handler = lambdaWrapper<CreateUrlInput>(
-  ["domainName", "userId"],
-  createUrl
+export const handler = lambdaWrapper<object, CreateUrlInput>(
+  createUrl,
+  undefined,
+  ["domainName", "userId"]
 );
