@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { handler } from "../../src/lambdas/deleteUser/deleteUser";
+import { handler } from "../../../src/lambdas/deleteUser/deleteUser";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { mockClient } from "aws-sdk-client-mock";

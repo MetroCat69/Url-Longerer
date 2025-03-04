@@ -107,6 +107,17 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       },
     });
 
+    const getUserFunction = new lambda.Function(this, "GetUserFunction", {
+      runtime: lambda.Runtime.NODEJS_LATEST,
+      code: lambda.Code.fromAsset(path.join(lambdaPath, "getUser")),
+      handler: "getUser.handler",
+      timeout: cdk.Duration.seconds(10),
+      layers: [commonLayer],
+      environment: {
+        USERS_TABLE_NAME: userTable.tableName,
+      },
+    });
+
     const deleteUserFunction = new lambda.Function(this, "DeleteUserFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(path.join(lambdaPath, "deleteUser")),
@@ -121,13 +132,20 @@ export class CdkUrlShortenerStack extends cdk.Stack {
     });
 
     userTable.grantReadWriteData(createUserFunction);
-    urlTable.grantWriteData(deleteUserFunction);
+    userTable.grantReadData(getUserFunction);
+    userTable.grantWriteData(deleteUserFunction);
+    urlTable.grantReadWriteData(deleteUserFunction);
 
     const userResource = api.root.addResource("user");
 
     userResource.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createUserFunction)
+    );
+
+    userResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUserFunction)
     );
 
     userResource.addMethod(

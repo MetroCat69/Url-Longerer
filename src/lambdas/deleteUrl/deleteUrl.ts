@@ -1,21 +1,25 @@
 import { APIGatewayProxyResult } from "aws-lambda";
-import { lambdaWrapper } from "/opt/lambdaWrapper"; // Importing the lambdaWrapper utility
-import { deleteRecord, createDynamoDBClient } from "/opt/dbHandler"; // Import the deleteRecord function
+import { lambdaWrapper } from "/opt/lambdaWrapper";
+import { deleteRecord, createDynamoDBClient } from "/opt/dbHandler";
 
 const dynamoDbClient = createDynamoDBClient();
 const urlTableName = process.env.URL_TABLE_NAME!;
 
-export interface DeleteUrlInput {
+export interface DeleteUrlQueryParams {
+  userId: number;
   url: string;
 }
 
-const deleteUrl = async (
-  validatedBody: DeleteUrlInput
-): Promise<APIGatewayProxyResult> => {
-  const { url } = validatedBody;
+const deleteUrl = async ({
+  queryParams,
+}: {
+  queryParams: DeleteUrlQueryParams;
+}): Promise<APIGatewayProxyResult> => {
+  const { userId, url } = queryParams;
+
   await deleteRecord(dynamoDbClient, urlTableName, { shortUrl: url });
 
-  console.log("Deleted url", url);
+  console.log("Deleted url", url, "for user", userId);
 
   return {
     statusCode: 200,
@@ -23,4 +27,7 @@ const deleteUrl = async (
   };
 };
 
-export const handler = lambdaWrapper<DeleteUrlInput>(["url"], deleteUrl);
+export const handler = lambdaWrapper<DeleteUrlQueryParams, object>(deleteUrl, [
+  "userId",
+  "url",
+]);

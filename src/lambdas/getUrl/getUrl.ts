@@ -7,14 +7,15 @@ import { UrlRecord } from "../../types/UrlRecord";
 const dynamoDbClient = new DynamoDBClient({});
 const urlTableName = process.env.URL_TABLE_NAME!;
 
-export interface GetUrlInput {
+export interface GetUrlQueryParams {
   url: string;
 }
-
-const getUrlHandler = async (
-  validatedBody: GetUrlInput
-): Promise<APIGatewayProxyResult> => {
-  const { url: shortUrl } = validatedBody;
+const getUrlHandler = async ({
+  queryParams,
+}: {
+  queryParams: GetUrlQueryParams;
+}): Promise<APIGatewayProxyResult> => {
+  const { url: shortUrl } = queryParams;
 
   console.log("Fetching URL with key:", { shortUrl });
 
@@ -31,7 +32,6 @@ const getUrlHandler = async (
   }
 
   console.log("Retrieved URL:", item);
-
   await updateRecord(
     dynamoDbClient,
     urlTableName,
@@ -43,7 +43,6 @@ const getUrlHandler = async (
   );
 
   console.log("Successfully incremented visit count");
-
   return {
     statusCode: 301,
     headers: {
@@ -53,4 +52,6 @@ const getUrlHandler = async (
   };
 };
 
-export const handler = lambdaWrapper<GetUrlInput>(["url"], getUrlHandler);
+export const handler = lambdaWrapper<GetUrlQueryParams, object>(getUrlHandler, [
+  "url",
+]);

@@ -8,8 +8,8 @@ const urlTableName = process.env.URL_TABLE_NAME!;
 const userTableName = process.env.USERS_TABLE_NAME!;
 const urlGSIName = process.env.URL_GSI_NAME;
 
-export interface DeleteUserInput {
-  userId: number;
+export interface DeleteUserQueryParams {
+  userId: string;
 }
 
 const deleteUrlsFromUrlTable = async (userId: number) => {
@@ -23,7 +23,6 @@ const deleteUrlsFromUrlTable = async (userId: number) => {
   };
 
   const userUrls: UrlRecord[] = await queryDb(dynamoDbClient, queryParams);
-
   if (userUrls.length === 0) {
     console.log(`No URLs found for userId ${userId}`);
     return;
@@ -34,6 +33,7 @@ const deleteUrlsFromUrlTable = async (userId: number) => {
       shortUrl: urlItem.shortUrl,
     });
   });
+
   console.log("deleting user urls");
   await Promise.all(deletePromises);
 };
@@ -42,15 +42,18 @@ const deleteUserFromUserTable = async (userId: number) => {
   return await deleteRecord(dynamoDbClient, userTableName, { userId });
 };
 
-const deleteUser = async (
-  validatedBody: DeleteUserInput
-): Promise<APIGatewayProxyResult> => {
-  const { userId } = validatedBody;
+const deleteUser = async ({
+  queryParams,
+}: {
+  queryParams: DeleteUserQueryParams;
+}): Promise<APIGatewayProxyResult> => {
+  const { userId } = queryParams;
+  const userIdInt = parseInt(userId, 10);
+  await deleteUrlsFromUrlTable(userIdInt);
 
-  await deleteUrlsFromUrlTable(userId);
-  await deleteUserFromUserTable(userId);
+  await deleteUserFromUserTable(userIdInt);
 
-  console.log("Deleted user", userId);
+  console.log("Deleted user", userIdInt);
 
   return {
     statusCode: 200,
@@ -60,7 +63,7 @@ const deleteUser = async (
   };
 };
 
-export const handler = lambdaWrapper<{ userId: number }>(
-  ["userId"],
-  deleteUser
+export const handler = lambdaWrapper<DeleteUserQueryParams, object>(
+  deleteUser,
+  ["userId"]
 );
