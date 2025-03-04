@@ -7,9 +7,9 @@
 1. add links table and delete links on user deletion delete link delete linker done
 1. redo code done
 1. REDO API TO MAKE IT MORE STANDERDISED done
-1. add integration tests
+1. add integration tests done
 1. redo unit tests [too time consuming]
-1. actual short url
+1. actual short url done
 1. cachce
 1. link exparation
 1. add get user
