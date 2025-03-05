@@ -1,6 +1,11 @@
 import { APIGatewayProxyResult } from "aws-lambda";
 import { lambdaWrapper } from "/opt/lambdaWrapper";
 import { deleteRecord, createDynamoDBClient } from "/opt/dbHandler";
+import {
+  getRedisClient,
+  connectRedisClient,
+  redisDelete,
+} from "/opt/redisHandler";
 
 const dynamoDbClient = createDynamoDBClient();
 const urlTableName = process.env.URL_TABLE_NAME!;
@@ -17,13 +22,25 @@ const deleteUrl = async ({
 }): Promise<APIGatewayProxyResult> => {
   const { userId, url } = queryParams;
 
-  await deleteRecord(dynamoDbClient, urlTableName, { shortUrl: url });
+  console.log(`deleting url${url} for user ${userId}`);
 
-  console.log("Deleted url", url, "for user", userId);
+  const redisClient = await getRedisClient();
+  await connectRedisClient(redisClient);
+
+  await deleteRecord(dynamoDbClient, urlTableName, { shortUrl: url });
+  console.log("Deleted URL from DynamoDB:", url);
+
+  // delete data from redis to keep data consistent
+  await redisDelete(redisClient, url);
+  console.log("Deleted URL from Redis:", url);
+
+  await redisClient.quit();
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ message: "URL deleted successfully" }),
+    body: JSON.stringify({
+      message: `URL deleted successfully`,
+    }),
   };
 };
 

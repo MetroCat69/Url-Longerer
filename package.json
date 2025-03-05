@@ -10,6 +10,7 @@
     "run": "npx ts-node src/index.ts",
     "lint": "eslint .",
     "build": "tsc",
+    "build-layer": "tsc -p src/common/tsconfig.json",
     "test": "jest --coverage",
     "test integration": "jest integration",
     "cdk bootstrap": "cdk bootstrap",
@@ -30,6 +31,7 @@
     "@types/aws-lambda": "^8.10.145",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.5",
+    "@types/redis": "^4.0.10",
     "@types/uuid": "^10.0.0",
     "aws-cdk": "2.162.1",
     "aws-sdk-mock": "^6.2.1",
@@ -50,6 +52,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.682.0",
     "@aws-sdk/client-s3": "^3.685.0",
+    "@aws-sdk/client-ssm": "^3.759.0",
     "@aws-sdk/core": "^3.679.0",
     "@aws-sdk/lib-dynamodb": "^3.685.0",
     "aws": "^0.0.3-2",
@@ -60,6 +63,7 @@
     "constructs": "^10.4.1",
     "dotenv": "^16.4.5",
     "inquirer": "^12.4.2",
+    "redis": "^4.7.0",
     "source-map-support": "^0.5.21",
     "uuid": "^10.0.0"
   }

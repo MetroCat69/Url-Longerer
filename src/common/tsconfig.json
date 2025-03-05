@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "outDir": "../../dist/common",
+    "rootDir": "./",
+    "esModuleInterop": true,
+    "moduleResolution": "node"
+  },
+  "include": ["**/*.ts"]
+}
