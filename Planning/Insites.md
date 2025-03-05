@@ -32,3 +32,6 @@ I am givving up on cdk due to the hassle of either paying money or doing a lot o
 
 FUCKING COSTUME DOMAINS ARE PRO FEATURE IN LOCAL STACK
 FUCK LOCALSTACK
+
+AXIOUS HAD SOME BUGS
+DID NOT WANT TO USE ELASTICACHE BECOUSE i need to remeber to turn down and up the machine

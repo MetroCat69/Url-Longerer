@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager"; // Import Secrets Manager
 import { Construct } from "constructs";
 import * as path from "path";
 
@@ -11,6 +12,12 @@ const layerPath = "dist/src";
 export class CdkUrlShortenerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const secret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      "RedisCredentials",
+      "RedisCredentialsNew"
+    );
 
     const urlTable = new dynamodb.Table(this, "UrlTable", {
       tableName: "UrlTable",
@@ -42,6 +49,9 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       description: "This service handles URL shortening.",
     });
 
+    const urlResource = api.root.addResource("url");
+    const userResource = api.root.addResource("user");
+
     const createUrlFunction = new lambda.Function(this, "CreateUrlFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
       code: lambda.Code.fromAsset(path.join(lambdaPath, "createUrl")),
@@ -50,8 +60,20 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       layers: [commonLayer],
       environment: {
         URL_TABLE_NAME: urlTable.tableName,
+        REDIS_HOST: secret.secretValueFromJson("REDIS_HOST").unsafeUnwrap(),
+        REDIS_PORT: secret.secretValueFromJson("REDIS_PORT").unsafeUnwrap(),
+        REDIS_PASSWORD: secret
+          .secretValueFromJson("REDIS_PASSWORD")
+          .unsafeUnwrap(),
       },
     });
+
+    secret.grantRead(createUrlFunction);
+    urlTable.grantReadWriteData(createUrlFunction);
+    urlResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createUrlFunction)
+    );
 
     const getUrlFunction = new lambda.Function(this, "GetUrlFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
@@ -61,8 +83,19 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       layers: [commonLayer],
       environment: {
         URL_TABLE_NAME: urlTable.tableName,
+        REDIS_HOST: secret.secretValueFromJson("REDIS_HOST").unsafeUnwrap(),
+        REDIS_PORT: secret.secretValueFromJson("REDIS_PORT").unsafeUnwrap(),
+        REDIS_PASSWORD: secret
+          .secretValueFromJson("REDIS_PASSWORD")
+          .unsafeUnwrap(),
       },
     });
+    secret.grantRead(getUrlFunction);
+    urlTable.grantReadWriteData(getUrlFunction);
+    urlResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUrlFunction)
+    );
 
     const deleteUrlFunction = new lambda.Function(this, "DeleteUrlFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
@@ -74,23 +107,7 @@ export class CdkUrlShortenerStack extends cdk.Stack {
         URL_TABLE_NAME: urlTable.tableName,
       },
     });
-
-    urlTable.grantReadWriteData(createUrlFunction);
-    urlTable.grantReadWriteData(getUrlFunction);
     urlTable.grantWriteData(deleteUrlFunction);
-
-    const urlResource = api.root.addResource("url");
-
-    urlResource.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(createUrlFunction)
-    );
-
-    urlResource.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getUrlFunction)
-    );
-
     urlResource.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(deleteUrlFunction)
@@ -106,6 +123,11 @@ export class CdkUrlShortenerStack extends cdk.Stack {
         USERS_TABLE_NAME: userTable.tableName,
       },
     });
+    userTable.grantReadWriteData(createUserFunction);
+    userResource.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createUserFunction)
+    );
 
     const getUserFunction = new lambda.Function(this, "GetUserFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
@@ -117,6 +139,11 @@ export class CdkUrlShortenerStack extends cdk.Stack {
         USERS_TABLE_NAME: userTable.tableName,
       },
     });
+    userTable.grantReadData(getUserFunction);
+    userResource.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUserFunction)
+    );
 
     const deleteUserFunction = new lambda.Function(this, "DeleteUserFunction", {
       runtime: lambda.Runtime.NODEJS_LATEST,
@@ -130,24 +157,8 @@ export class CdkUrlShortenerStack extends cdk.Stack {
         URL_GSI_NAME: urlGSIName,
       },
     });
-
-    userTable.grantReadWriteData(createUserFunction);
-    userTable.grantReadData(getUserFunction);
     userTable.grantWriteData(deleteUserFunction);
     urlTable.grantReadWriteData(deleteUserFunction);
-
-    const userResource = api.root.addResource("user");
-
-    userResource.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(createUserFunction)
-    );
-
-    userResource.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getUserFunction)
-    );
-
     userResource.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(deleteUserFunction)

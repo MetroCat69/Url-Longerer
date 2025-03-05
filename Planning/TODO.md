@@ -25,12 +25,9 @@
 
 ## TODO BUGS THAT AROSE
 
-make sure domain is not written twice use a hash for a domain for that as index
-and have short code and domain hash
 make sure user exists before writing (auth)
 ADD CHECK DELETE IS SUSSEFUL
 deleting nothing results in succses
-REDO API TO MAKE IT MORE STANDERDISED
 make user id be generated in the backend
 should prevent deleting URL with incorrect userId (not your own)
-should prevent creating duplicate short URLs(same domain name)
+RETURN SPECIFIC ERROR IF TRYING TO CREATE URL OR USER TWICE
