@@ -24,3 +24,5 @@ and a redis acount
 
 to deploy use aws cdk
 to distory everything with just one click use cdk distory
+
+USING UUID IN COMMON TO AVOID HEADACSE OF OUNTING LIBS AND MANAGING DIFFRENT DEPEDENCIES (EVEN THOUGHT MAKES LAMBDA BIGGER)

@@ -7,7 +7,6 @@ describe("Integration Tests for User Lambda", () => {
   it("should create a User and perform full lifecycle", async () => {
     const baseURL = "http://127.0.0.1:3000/user";
     const createUserInput = {
-      userId: Math.floor(Math.random() * 100000),
       name: "Test User",
       email: randomEmail(),
       password: "securePassword123",
