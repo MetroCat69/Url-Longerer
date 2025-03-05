@@ -105,6 +105,11 @@ export class CdkUrlShortenerStack extends cdk.Stack {
       layers: [commonLayer],
       environment: {
         URL_TABLE_NAME: urlTable.tableName,
+        REDIS_HOST: secret.secretValueFromJson("REDIS_HOST").unsafeUnwrap(),
+        REDIS_PORT: secret.secretValueFromJson("REDIS_PORT").unsafeUnwrap(),
+        REDIS_PASSWORD: secret
+          .secretValueFromJson("REDIS_PASSWORD")
+          .unsafeUnwrap(),
       },
     });
     urlTable.grantWriteData(deleteUrlFunction);
@@ -155,6 +160,11 @@ export class CdkUrlShortenerStack extends cdk.Stack {
         USERS_TABLE_NAME: userTable.tableName,
         URL_TABLE_NAME: urlTable.tableName,
         URL_GSI_NAME: urlGSIName,
+        REDIS_HOST: secret.secretValueFromJson("REDIS_HOST").unsafeUnwrap(),
+        REDIS_PORT: secret.secretValueFromJson("REDIS_PORT").unsafeUnwrap(),
+        REDIS_PASSWORD: secret
+          .secretValueFromJson("REDIS_PASSWORD")
+          .unsafeUnwrap(),
       },
     });
     userTable.grantWriteData(deleteUserFunction);
